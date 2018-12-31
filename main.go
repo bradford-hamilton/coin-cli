@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	ui "github.com/gizak/termui"
 )
@@ -13,21 +14,24 @@ import (
 // Log sets up our logger for debugging
 var Log *log.Logger
 
-// Assets is the response shape for coincap assets request
+// Assets is the response shape for assets request
 type Assets struct {
-	Data []struct {
-		ID                string
-		Rank              string
-		Symbol            string
-		Name              string
-		Supply            string
-		MaxSupply         string
-		MarketCapUsd      string
-		VolumeUsd24Hr     string
-		PriceUsd          string
-		ChangePercent24Hr string
-		Vwap24Hr          string
-	}
+	Data []CoinData
+}
+
+// CoinData is a single asset shape from request
+type CoinData struct {
+	ID                string
+	Rank              string
+	Symbol            string
+	Name              string
+	Supply            string
+	MaxSupply         string
+	MarketCapUsd      string
+	VolumeUsd24Hr     string
+	PriceUsd          string
+	ChangePercent24Hr string
+	Vwap24Hr          string
 }
 
 func main() {
@@ -46,6 +50,7 @@ func main() {
 	}
 	defer ui.Close()
 
+	// TODO: add a ui loading
 	res, err := http.Get("https://api.coincap.io/v2/assets?limit=10")
 	if err != nil {
 		Log.Println("HTTP request err: ", err)
@@ -65,7 +70,7 @@ func main() {
 	ls := ui.NewList()
 	ls.Items = coins
 	ls.ItemFgColor = ui.ColorYellow
-	ls.BorderLabel = "Choose coin for price"
+	ls.BorderLabel = "Choose coin"
 	ls.Height = 12
 	ls.Width = 24
 	ls.Y = 0
@@ -79,23 +84,42 @@ func main() {
 		case "q", "<C-c>":
 			return
 		case "1":
-			getPrice("BTC")
+			renderCoin(a.Data[0])
 		case "2":
-			getPrice("LTC")
+			renderCoin(a.Data[1])
 		case "3":
-			getPrice("ETH")
+			renderCoin(a.Data[2])
+		case "4":
+			renderCoin(a.Data[3])
+		case "5":
+			renderCoin(a.Data[4])
+		case "6":
+			renderCoin(a.Data[5])
+		case "7":
+			renderCoin(a.Data[6])
+		case "8":
+			renderCoin(a.Data[7])
+		case "9":
+			renderCoin(a.Data[8])
+		case "10":
+			renderCoin(a.Data[9])
 		}
 	}
 }
 
-func getPrice(ticker string) {
+func renderCoin(coinData CoinData) {
 	ui.Clear()
 
-	p := ui.NewParagraph("         3395")
+	s, err := strconv.ParseFloat(coinData.PriceUsd, 32)
+	if err == nil {
+		Log.Println("parse float err: ", err)
+	}
+
+	p := ui.NewParagraph(fmt.Sprintf("Price (USD) %s", fmt.Sprintf("%.2f", s)))
 	p.Height = 3
 	p.Width = 24
 	p.TextFgColor = ui.ColorWhite
-	p.BorderLabel = ticker
+	p.BorderLabel = coinData.Symbol
 	p.BorderFg = ui.ColorCyan
 
 	ui.Render(p)
