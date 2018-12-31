@@ -51,7 +51,7 @@ func main() {
 	defer ui.Close()
 
 	// TODO: add a ui loading
-	res, err := http.Get("https://api.coincap.io/v2/assets?limit=10")
+	res, err := http.Get("https://api.coincap.io/v2/assets?limit=9")
 	if err != nil {
 		Log.Println("HTTP request err: ", err)
 	}
@@ -83,43 +83,28 @@ func main() {
 		switch e.ID {
 		case "q", "<C-c>":
 			return
-		case "1":
-			renderCoin(a.Data[0])
-		case "2":
-			renderCoin(a.Data[1])
-		case "3":
-			renderCoin(a.Data[2])
-		case "4":
-			renderCoin(a.Data[3])
-		case "5":
-			renderCoin(a.Data[4])
-		case "6":
-			renderCoin(a.Data[5])
-		case "7":
-			renderCoin(a.Data[6])
-		case "8":
-			renderCoin(a.Data[7])
-		case "9":
-			renderCoin(a.Data[8])
-		case "10":
-			renderCoin(a.Data[9])
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+			renderCoin(a.Data, e.ID)
 		}
 	}
 }
 
-func renderCoin(coinData CoinData) {
+func renderCoin(coinData []CoinData, ind string) {
 	ui.Clear()
 
-	s, err := strconv.ParseFloat(coinData.PriceUsd, 32)
+	i, _ := strconv.Atoi(ind)
+	i--
+
+	price, err := strconv.ParseFloat(coinData[i].PriceUsd, 32)
 	if err == nil {
 		Log.Println("parse float err: ", err)
 	}
 
-	p := ui.NewParagraph(fmt.Sprintf("Price (USD) %s", fmt.Sprintf("%.2f", s)))
+	p := ui.NewParagraph(fmt.Sprintf("Price (USD) %s", fmt.Sprintf("%.2f", price)))
 	p.Height = 3
 	p.Width = 24
 	p.TextFgColor = ui.ColorWhite
-	p.BorderLabel = coinData.Symbol
+	p.BorderLabel = coinData[i].Symbol
 	p.BorderFg = ui.ColorCyan
 
 	ui.Render(p)
