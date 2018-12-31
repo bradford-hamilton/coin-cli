@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,18 +15,18 @@ var Log *log.Logger
 
 // Assets is the response shape for coincap assets request
 type Assets struct {
-	data []struct {
-		ID                string `json:"id"`
-		Rank              string `json:"rank"`
-		Symbol            string `json:"symbol"`
-		Name              string `json:"name"`
-		Supply            string `json:"supply"`
-		MaxSupply         string `json:"maxSupply"`
-		MarketCapUsd      string `json:"marketCapUsd"`
-		VolumeUsd24Hr     string `json:"volumeUsd24Hr"`
-		PriceUsd          string `json:"priceUsd"`
-		ChangePercent24Hr string `json:"changePercent24Hr"`
-		Vwap24Hr          string `json:"vwap24Hr"`
+	Data []struct {
+		ID                string
+		Rank              string
+		Symbol            string
+		Name              string
+		Supply            string
+		MaxSupply         string
+		MarketCapUsd      string
+		VolumeUsd24Hr     string
+		PriceUsd          string
+		ChangePercent24Hr string
+		Vwap24Hr          string
 	}
 }
 
@@ -52,20 +53,20 @@ func main() {
 	defer res.Body.Close()
 
 	a := &Assets{}
-	r := json.NewDecoder(res.Body).Decode(a)
-	Log.Println("HTTP response: ", r)
+	if err = json.NewDecoder(res.Body).Decode(a); err != nil {
+		Log.Println("json decoder err: ", err)
+	}
 
-	strs := []string{
-		"[1] [BTC](fg-blue)",
-		"[2] [LTC](fg-blue)",
-		"[3] [ETH](fg-blue)",
+	coins := []string{}
+	for i, v := range a.Data {
+		coins = append(coins, fmt.Sprintf("[%d] [%s](fg-blue)", i+1, v.Symbol))
 	}
 
 	ls := ui.NewList()
-	ls.Items = strs
+	ls.Items = coins
 	ls.ItemFgColor = ui.ColorYellow
 	ls.BorderLabel = "Choose coin for price"
-	ls.Height = 5
+	ls.Height = 12
 	ls.Width = 24
 	ls.Y = 0
 
